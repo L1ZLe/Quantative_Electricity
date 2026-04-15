@@ -1,9 +1,18 @@
+# ==========================================
+# IMPORTS & DEPENDENCIES
+# ==========================================
 import numpy as np
 import pandas as pd
 import streamlit as st
 from visualizations import final_balance_plotting, waiting_statement
 
+# ==========================================
+# PERCENTILE-BASED STRATEGY
+# ==========================================
 def calculate_percentiles(data, window_size, percentile_20, percentile_80):
+    """
+    Calculates rolling lower and upper percentiles for the electricity prices.
+    """
     data['Percentile_20'] = data['Electricity: Wtd Avg Price $/MWh'].rolling(window=window_size).apply(lambda x: np.percentile(x, percentile_20), raw=True)
     data['Percentile_80'] = data['Electricity: Wtd Avg Price $/MWh'].rolling(window=window_size).apply(lambda x: np.percentile(x, percentile_80), raw=True)
     return data
@@ -41,6 +50,9 @@ def run_percentile_strategy(starting_amount, data):
         return data
     
 
+# ==========================================
+# BREAK OF STRUCTURE (BOS) STRATEGY
+# ==========================================
 def run_BOS_strategy(starting_amount, data):
     start_date = st.date_input("Start Date for Plot", data['Trade Date'].min())
     end_date = st.date_input("End Date for Plot", data['Trade Date'].max())
@@ -117,6 +129,10 @@ def detect_trend(data, extrems_date, trend, close_readfiles):
             trend = True
             data = data[data.index >= extrems_date]
         return trend, data
+
+# ==========================================
+# UTILITY AND EVALUATION FUNCTIONS
+# ==========================================
 def calculate_ROI(data):
     buy_price = None
     total_return = 0.0
@@ -174,6 +190,9 @@ def get_latest_high_and_low(data, start_date, extrems_date, initial_trend, new_t
 
         return high, low, close, start_date, extrems_date
 
+# ==========================================
+# STRATEGY DESCRIPTIONS & EXAMPLES
+# ==========================================
 def strategy_description(strategy):
     descriptions = {
         "Break of Structure": (
@@ -512,6 +531,9 @@ def strategy_description(strategy):
     st.write(descriptions.get(strategy, "Strategy not found"))
 
 
+# ==========================================
+# ML STRATEGIES ROI & WINRATE EVALUATION
+# ==========================================
 def trading_algo_roi_winrate(train_data, test_data, predictions):
     # Convert test_data to a Series (1-dimensional) before creating the DataFrame
     data = pd.DataFrame({'X_test': test_data.squeeze().shift(1), 'y_test': test_data.squeeze(), 'predictions': predictions})
